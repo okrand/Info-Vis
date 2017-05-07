@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.states {
+  fill: green;
+  stroke: #FFFFFF;
+  stroke-linejoin: round;
+}
+
+.state-borders {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0.5px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+</style>
+<svg width="960" height="600"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script src="https://d3js.org/topojson.v2.min.js"></script>
+<script>
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+
+var fatal = d3.map();
+
+var path = d3.geoPath();
+
+var x = d3.scaleLinear()
+    .domain([1,620])
+    .range([600, 860]);
+
+var color = d3.scaleThreshold()
+    //.domain(d3.range(1,620))
+    .domain([1,78,155,233,310,387,465,542,620])
+    .range(d3.schemeOranges[9]);
+
+var colorstates = d3.scaleThreshold()
+.domain([1,620])
+.range(d3.schemeOranges[9]);
+
+/*var color = d3.scale.linear()
+    .domain([1,620])
+    .range(['#0075B4', '#70B5DC']);
+*/
+var g = svg.append("g")
+    .attr("class", "key")
+    .attr("transform", "translate(0,40)");
+
+g.selectAll("rect")
+  .data(color.range().map(function(d) {
+      d = color.invertExtent(d);
+      if (d[0] == null) d[0] = x.domain()[0];
+      if (d[1] == null) d[1] = x.domain()[1];
+      return d;
+    }))
+  .enter().append("rect")
+    .attr("height", 8)
+    .attr("x", function(d) { return x(d[0]); })
+    .attr("width", function(d) { return x(d[1]) - x(d[0]); })
+    .attr("fill", function(d) { return color(d[0]); });
+
+g.append("text")
+    .attr("class", "caption")
+    .attr("x", x.range()[0])
+    .attr("y", -6)
+    .attr("fill", "#000")
+    .attr("text-anchor", "start")
+    .attr("font-weight", "bold")
+    .text("Fatalities");
+
+g.call(d3.axisBottom(x)
+    .tickSize(13)
+    .tickFormat(function(x, i) { return i ? x : x; })
+    .tickValues(color.domain()))
+  .select(".domain")
+    .remove();
+
+d3.queue()
+    .defer(d3.json, "https://d3js.org/us-10m.v1.json")
+//.defer(d3.json, "us-states.json")
+    .defer(d3.csv, "state-fatality.csv", function(d) { fatal.set(d.state, +d.value); })
+    .await(ready);
+
+function ready(error, us) {
+  if (error) throw error;
+
+  svg.append("g")
+      .attr("class", "states")
+    .selectAll("path")
+    .data(topojson.feature(us, us.objects.states).features)
+    .enter().append("path")
+      .attr("fill", function(i) { return colorstates(i.value = fatal.get(i.state)); })
+      .attr("d", path)
+    .append("title")
+      .text(function(d) { return d.state; });
+
+  svg.append("path")
+      .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
+      .attr("class", "state-borders")
+      .attr("d", path);
+}
+
+</script>

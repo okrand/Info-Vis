@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style type="text/css">
+iframe {
+  -moz-transform: scale(0.5, 0.5); 
+  -webkit-transform: scale(0.5, 0.5); 
+  -o-transform: scale(0.5, 0.5);
+  -ms-transform: scale(0.5, 0.5);
+  transform: scale(0.5, 0.5); 
+}
+
+#iframe_a {
+  -moz-transform-origin: top left;
+  -webkit-transform-origin: top left;
+  -o-transform-origin: top left;
+  -ms-transform-origin: top left;
+  transform-origin: top left;
+}
+#iframe_b {
+  -moz-transform-origin: top left;
+  -webkit-transform-origin: top 325;
+  -o-transform-origin: top 325;
+  -ms-transform-origin: top left;
+  transform-origin: top left;
+}
+#iframe_c {
+  -moz-transform-origin: top left;
+  -webkit-transform-origin: top 325;
+  -o-transform-origin: top 325;
+  -ms-transform-origin: top left;
+  transform-origin: top left;
+}
+.container{position:relative;float:left;width:500px;height:325px;}
+.overlay{top:0;left:0;width:500px;height:325px;position:absolute;}
+</style>
+</head>
+<body>
+<h2>Motorcycle Crashes and Causes</h2>
+<div class="container">
+<iframe height="650px" width="1000px" scrolling="no" src="http://www.cs.odu.edu/~okrand/cs725/Final-Project/map.html" name="iframe_a" id="iframe_a" frameborder="0"></iframe>
+<div class="overlay" onclick="window.location = './map.html';"></div>
+</div>
+<div class="container">
+<iframe height="650px" width="1000px" scrolling="no" src="http://www.cs.odu.edu/~okrand/cs725/Final-Project/bar.html" name="iframe_b" id="iframe_b" frameborder="0"></iframe>
+<div class="overlay" onclick="window.location = './bar.html';"></div>
+</div>
+<div class="container">
+<iframe height="650px" width="1000px" scrolling="no" src="http://www.cs.odu.edu/~okrand/cs725/Final-Project/pie.html" name="iframe_c" id="iframe_c" frameborder="0"></iframe>
+<div class="overlay" onclick="window.location='./pie.html';"></div>
+</div>
+<div class="container">
+<p>This website presents motorcycle crash data in the U.S. in 2015. Data is collected from the NHTSA yearly motorcycle document. Clicking the visualizations will redirect you to the corresponding pages for more detail. </p><p>While this page isn't designed to give you clear answers as to why most motorcycle accidents happen, it shows some trends like fatality rate change per year since 2006, what are the positions of the motorcycle and the object it crashed into for the accidents and more.</p>
+</div>
+</body>
+</html>

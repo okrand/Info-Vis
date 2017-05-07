@@ -1,0 +1,10 @@
+type,reason,percent
+General,2vehicle,0.54
+General,fixed,0.24
+General,other,0.22
+Zone,Front,0.74
+Zone,Rear,0.07
+Zone,Sides,0.19
+Direction,Turn,0.41
+Direction,Straight,0.22
+Direction,Other,0.37

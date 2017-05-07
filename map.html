@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+/* On mouse hover, lighten state color */
+path:hover {
+  fill-opacity: .7;
+}
+
+/* Style for Custom Tooltip */
+.tooltip {   
+  position: absolute;           
+  text-align: center;
+  width: 100px;            
+  height: 55px;                 
+  padding: 2px;             
+  font: 12px sans-serif;        
+  background: lightsteelblue;   
+  border: 0px;      
+  border-radius: 8px;           
+  pointer-events: none;         
+}
+.states {
+  fill: green;
+  stroke: #FFFFFF;
+  stroke-linejoin: round;
+  pointer-events: all;
+}
+.state-borders {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 0.5px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+</style>
+<button style="position:absolute; top:10px;" onclick="goBack()">Go Back</button>
+<script>
+function goBack() {
+    window.history.back();
+}
+</script>
+<svg width="960" height="600"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script src="https://d3js.org/topojson.v2.min.js"></script>
+<script>
+
+var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height");
+var fatal = d3.map();
+var laws = d3.map();
+var names = d3.map();
+var pop = d3.map();
+var path = d3.geoPath();
+var div = d3.select("body")
+        .append("div")   
+        .attr("class", "tooltip")               
+        .style("opacity", 0);
+var x = d3.scaleLinear()
+    .domain([1,620])
+    .range([600, 860]);
+var color = d3.scaleThreshold()
+    //.domain(d3.range(1,620))
+    .domain([1,30,80,130,200,300,400,500,620])
+    .range(d3.schemeOranges[9]);
+var colorstates = d3.scaleLinear()
+//.domain()
+.range(d3.schemeOranges[9]);
+var g = svg.append("g")
+    .attr("class", "key")
+    .attr("transform", "translate(0,40)");
+g.selectAll("rect")
+  .data(color.range().map(function(d) {
+      d = color.invertExtent(d);
+      if (d[0] == null) d[0] = x.domain()[0];
+      if (d[1] == null) d[1] = x.domain()[1];
+      return d;
+    }))
+  .enter().append("rect")
+    .attr("height", 8)
+    .attr("x", function(d) { return x(d[0]); })
+    .attr("width", function(d) { return x(d[1]) - x(d[0]); })
+    .attr("fill", function(d) { return color(d[0]); });
+g.append("text")
+    .attr("class", "caption")
+    .attr("x", x.range()[0])
+    .attr("y", -6)
+    .attr("fill", "#000")
+    .attr("text-anchor", "start")
+    .attr("font-weight", "bold")
+    .text("Motorcycle Fatalities in the U.S. in 2015");
+g.call(d3.axisBottom(x)
+    .tickSize(13)
+    .tickFormat(function(x, i) { return i ? x : x; })
+    .tickValues(color.domain()))
+  .select(".domain")
+    .remove();
+d3.queue()
+    .defer(d3.json, "https://d3js.org/us-10m.v1.json")
+    .defer(d3.csv, "state-fatality.csv", function(d) { fatal.set(d.id, +d.value); names.set(d.id, d.state); laws.set(d.id, d.law); pop.set(d.id, +d.pop);})
+    .await(ready);
+function ready(error, us) {
+  if (error) throw error;
+  svg.append("g")
+    .attr("class", "states")
+    .selectAll("path")
+    .data(topojson.feature(us, us.objects.states).features)
+    .enter().append("path")
+      .attr("fill", function(d) { return color(d.value = fatal.get(d.id)); })
+      .attr("d", path)
+      .on("mouseover", function(d) {
+      div.transition()        
+           .duration(200);      
+           div.html(names.get(d.id)+ "<br/>Fatalities: " + fatal.get(d.id) + "<br/>Helmet Law: " + TrueToYes(laws.get(d.id)) + "<br/>Pop: " + d3.format(",")(pop.get(d.id)))
+           .style("left", (d3.event.pageX) + "px")     
+           .style("top", (d3.event.pageY - 28) + "px")
+           .style("opacity", .9);
+  })
+
+    // fade out tooltip on mouse out               
+    .on("mouseout", function(d) {       
+        div.transition()        
+           .duration(500)      
+           .style("opacity", 0);   
+    })
+  svg.append("path")
+      .attr("class", "state-borders")
+      .attr("d", path(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; })));
+      
+  
+
+  // Purple borders for states that don't have a helmet law
+  svg.append("path")
+      .attr("fill", "none")
+      .attr("stroke", "purple")
+      .attr("stroke-width", 2.5)
+      .attr("d", path(topojson.mesh(us, us.objects.states, function(a, b){ if (laws.get(a.id) == "FALSE" || laws.get(b.id) == "FALSE"){return true} }))); 
+
+  // California (lane splitting)
+  svg.append("path")
+      .attr("fill", "none")
+      .attr("stroke", "cyan")
+      .attr("stroke-width", 2.5)
+      .attr("d", path(topojson.mesh(us, us.objects.states, border(06))));
+
+}
+function TrueToYes(torf) {
+  if (torf == "TRUE"){
+    return "yes";
+  }
+  else{
+    return "no";
+  }
+}
+function border(id0) {
+  return function(a, b) {
+    return a.id == id0 || b.id == id0;
+  };
+}
+
+    
+</script>
